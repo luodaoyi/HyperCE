@@ -74,6 +74,14 @@ __int64 __fastcall MiReadWriteVirtualMemory(
 code:
 https://github.com/oakboat/HyperCE/blob/e028a0124149f155af49d47cd290fa2c6fea395e/gbhv/ept.c#L522-L523
 
+## Demo
+
+first, openprocess without read privilege.
+https://github.com/oakboat/HyperCE/blob/cc6b51a1f94e85ad804a2fd27513176ffdb2efd4/test/test.cpp#L89
+Not HyperCE
+![image](https://github.com/user-attachments/assets/b493d711-6f76-4167-9f76-ab6726603544)
+With HyperCE
+![7fd0c55aee9fa54db219817558e4c60](https://github.com/user-attachments/assets/7bab7d76-c463-42d0-a5ee-554e63487bd4)
 
 ## References
 
