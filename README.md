@@ -74,6 +74,18 @@ __int64 __fastcall MiReadWriteVirtualMemory(
 code:
 https://github.com/oakboat/HyperCE/blob/e028a0124149f155af49d47cd290fa2c6fea395e/gbhv/ept.c#L522-L523
 
+## Usage
+- compile driver
+- load driver
+- open ur CE
+
+## CE Demo
+![image](https://github.com/user-attachments/assets/49fb1a7f-3c89-4b41-95d2-0fbde873965b)
+![image](https://github.com/user-attachments/assets/081c682f-4769-49cb-b0f1-8f8b06532b2e)
+our HyperCE
+![无标题](https://github.com/user-attachments/assets/0f39374d-38e9-4907-8757-7a4bd23c0d5c)
+![无标题1](https://github.com/user-attachments/assets/82b1e0a4-75a8-4af8-abd1-93b8d0e956c8)
+
 ## Demo
 
 first, openprocess without read privilege.
