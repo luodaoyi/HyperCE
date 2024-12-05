@@ -72,7 +72,7 @@ __int64 __fastcall MiReadWriteVirtualMemory(
             0LL);
 ```
 code:
-https://github.com/oakboat/HyperCE/blob/e028a0124149f155af49d47cd290fa2c6fea395e/gbhv/ept.c#L522-L523
+https://github.com/oakboat/HyperCE/blob/5c682a4ee85b2b0d4d3228beb7585946c2081de5/hv/main.cpp#L15
 
 ## Usage
 - compile driver
@@ -97,4 +97,4 @@ With HyperCE
 
 ## References
 
-**[gbhv](https://github.com/Gbps/gbhv)**
+**[hv](https://github.com/jonomango/hv)**
