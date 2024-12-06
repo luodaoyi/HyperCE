@@ -16,7 +16,7 @@ NTSTATUS ObReferenceObjectByHandleWithTagHook(HANDLE Handle, ACCESS_MASK Desired
     ULONG Tag, PVOID* Object, POBJECT_HANDLE_INFORMATION HandleInformation) 
 {
     char* process_name = PsGetProcessImageFileName(PsGetCurrentProcess());
-    if (strstr(process_name, "cheatengine"))
+    if (strstr(process_name, "cheatengine") || strstr(process_name, "HyperCE"))
     {
         //DbgPrintEx(0, 0, "process_name %s\n", process_name);
         return ObReferenceObjectByHandleWithTagHookTrampoline(Handle, 0, ObjectType, KernelMode, Tag, Object, HandleInformation);
@@ -56,7 +56,7 @@ NTSTATUS driver_entry(PDRIVER_OBJECT const driver, PUNICODE_STRING) {
       DbgPrint("[client] Failed to ping hypervisor!\n");
 
   g_bytepatch_addr = (uint8_t*)ObReferenceObjectByHandleWithTag;
-  DbgPrintEx(0, 0, "Bytepatch address: 0x%p.\n", g_bytepatch_addr);
+  DbgPrint("Bytepatch address: 0x%p.\n", g_bytepatch_addr);
 
   // copy the original bytes so we can restore them later
   memcpy(g_orig_bytes, g_bytepatch_addr, sizeof(g_orig_bytes));
@@ -85,7 +85,6 @@ NTSTATUS driver_entry(PDRIVER_OBJECT const driver, PUNICODE_STRING) {
       input.args[0] = patch_phy;
       auto exec_page_phy = MmGetPhysicalAddress(exec_page).QuadPart >> 12;
       input.args[1] = exec_page_phy;
-      auto result = hv::vmx_vmcall(input);
 
       KeRevertToUserAffinityThreadEx(orig_affinity);
   }
