@@ -85,6 +85,7 @@ NTSTATUS driver_entry(PDRIVER_OBJECT const driver, PUNICODE_STRING) {
       input.args[0] = patch_phy;
       auto exec_page_phy = MmGetPhysicalAddress(exec_page).QuadPart >> 12;
       input.args[1] = exec_page_phy;
+      hv::vmx_vmcall(input);
 
       KeRevertToUserAffinityThreadEx(orig_affinity);
   }
