@@ -5,7 +5,7 @@
 namespace hv {
 
 // how much of physical memory to map into the host address-space
-inline constexpr size_t host_physical_memory_pd_count = 64;
+inline constexpr size_t host_physical_memory_pd_count = 512;
 
 // physical memory is directly mapped to this pml4 entry
 inline constexpr uint64_t host_physical_memory_pml4_idx = 255;
