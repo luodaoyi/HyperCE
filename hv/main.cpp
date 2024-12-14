@@ -3,25 +3,40 @@
 #include <ntddk.h>
 #include <ia32.hpp>
 
-extern "C" NTSTATUS ObReferenceObjectByHandleWithTagHookTrampoline(HANDLE Handle, ACCESS_MASK DesiredAccess, POBJECT_TYPE ObjectType, KPROCESSOR_MODE AccessMode,
-    ULONG Tag, PVOID* Object, POBJECT_HANDLE_INFORMATION HandleInformation);
+extern "C" NTSTATUS ObpReferenceObjectByHandleWithTagHookTrampoline(HANDLE Handle, ACCESS_MASK DesiredAccess, POBJECT_TYPE ObjectType, KPROCESSOR_MODE AccessMode,
+    ULONG Tag, PVOID* Object, POBJECT_HANDLE_INFORMATION HandleInformation, __int64 a0);
 
 extern "C" uint8_t* g_bytepatch_addr = nullptr;
 
-static uint8_t g_orig_bytes[12];
+static uint8_t g_orig_bytes[14];
 
 extern "C" char* PsGetProcessImageFileName(PEPROCESS Process);
 
-NTSTATUS ObReferenceObjectByHandleWithTagHook(HANDLE Handle, ACCESS_MASK DesiredAccess, POBJECT_TYPE ObjectType, KPROCESSOR_MODE AccessMode,
-    ULONG Tag, PVOID* Object, POBJECT_HANDLE_INFORMATION HandleInformation) 
+uint8_t* find_bytepatch_address() {
+    auto const pObReferenceObjectByHandleWithTag = reinterpret_cast<uint8_t*>(ObReferenceObjectByHandleWithTag);
+
+    for (size_t offset = 0; offset < 0x100; ++offset) {
+        auto const curr = pObReferenceObjectByHandleWithTag + offset;
+
+        if (*curr == 0xE8)
+        {
+            return curr + 5 + *(int*)(curr + 1);
+        }
+    }
+
+    return nullptr;
+}
+
+NTSTATUS ObpReferenceObjectByHandleWithTagHook(HANDLE Handle, ACCESS_MASK DesiredAccess, POBJECT_TYPE ObjectType, KPROCESSOR_MODE AccessMode,
+    ULONG Tag, PVOID* Object, POBJECT_HANDLE_INFORMATION HandleInformation, __int64 a0)
 {
     char* process_name = PsGetProcessImageFileName(PsGetCurrentProcess());
     if (strstr(process_name, "cheatengine") || strstr(process_name, "HyperCE"))
     {
         //DbgPrintEx(0, 0, "process_name %s\n", process_name);
-        return ObReferenceObjectByHandleWithTagHookTrampoline(Handle, 0, ObjectType, KernelMode, Tag, Object, HandleInformation);
+        return ObpReferenceObjectByHandleWithTagHookTrampoline(Handle, 0, ObjectType, KernelMode, Tag, Object, HandleInformation, a0);
     }
-    return ObReferenceObjectByHandleWithTagHookTrampoline(Handle, DesiredAccess, ObjectType, AccessMode, Tag, Object, HandleInformation);
+    return ObpReferenceObjectByHandleWithTagHookTrampoline(Handle, DesiredAccess, ObjectType, AccessMode, Tag, Object, HandleInformation, a0);
 }
 
 // simple hypercall wrappers
@@ -55,18 +70,20 @@ NTSTATUS driver_entry(PDRIVER_OBJECT const driver, PUNICODE_STRING) {
   else
       DbgPrint("[client] Failed to ping hypervisor!\n");
 
-  g_bytepatch_addr = (uint8_t*)ObReferenceObjectByHandleWithTag;
+  g_bytepatch_addr = find_bytepatch_address();
   DbgPrint("Bytepatch address: 0x%p.\n", g_bytepatch_addr);
 
   // copy the original bytes so we can restore them later
   memcpy(g_orig_bytes, g_bytepatch_addr, sizeof(g_orig_bytes));
 
-  uint8_t new_bytes[12] = {
+  uint8_t new_bytes[14] = {
     0x48, 0xB8, 0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12,
     0xFF, 0xE0,
+    0x90,
+    0x90,
   };
 
-  *reinterpret_cast<void**>(new_bytes + 2) = ObReferenceObjectByHandleWithTagHook;
+  *reinterpret_cast<void**>(new_bytes + 2) = ObpReferenceObjectByHandleWithTagHook;
 
   auto const exec_page = (uint8_t*)ExAllocatePoolWithTag(NonPagedPool, 0x1000, 'pepe');
 
