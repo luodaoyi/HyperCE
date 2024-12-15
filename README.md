@@ -1,7 +1,11 @@
 # HyperCE - Leveraging Cheat Engine with VT-x Hypervisor for Enhanced Game Analysis
 
-## Medthod
+## Usage
+- compile driver
+- load driver or map it with kdmapper
+- open CE or software(name contain HyperCE)
 
+## Medthod
 the kernel function MiReadWriteVirtualMemory call ObReferenceObjectByHandleWithTag to check the privilege.
 so hooking ObReferenceObjectByHandleWithTag can let Cheat Engine acess any process despite proctection.
 ```
@@ -73,11 +77,6 @@ __int64 __fastcall MiReadWriteVirtualMemory(
 ```
 code:
 https://github.com/oakboat/HyperCE/blob/5c682a4ee85b2b0d4d3228beb7585946c2081de5/hv/main.cpp#L15
-
-## Usage
-- compile driver
-- load driver
-- open ur CE
 
 ## CE Demo
 ![image](https://github.com/user-attachments/assets/49fb1a7f-3c89-4b41-95d2-0fbde873965b)
