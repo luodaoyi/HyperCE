@@ -4,7 +4,7 @@
 - compile driver
 - load driver or map it with kdmapper
 - open CE or software(name contain HyperCE)
-
+中文教程 https://blog.hhhhhi.com/archives/10/
 ## Medthod
 the kernel function MiReadWriteVirtualMemory call ObReferenceObjectByHandleWithTag to check the privilege.
 so hooking ObReferenceObjectByHandleWithTag can let Cheat Engine acess any process despite proctection.
