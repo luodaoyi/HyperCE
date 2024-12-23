@@ -6,6 +6,22 @@
 - open CE or software(name contain HyperCE)
 ## 中文教程
 https://blog.hhhhhi.com/archives/10/
+
+## Feature
+- bypass protection
+- hide process
+
+## CE Demo
+![image](https://github.com/user-attachments/assets/49fb1a7f-3c89-4b41-95d2-0fbde873965b)
+![image](https://github.com/user-attachments/assets/081c682f-4769-49cb-b0f1-8f8b06532b2e)
+our HyperCE
+![无标题](https://github.com/user-attachments/assets/0f39374d-38e9-4907-8757-7a4bd23c0d5c)
+![无标题1](https://github.com/user-attachments/assets/82b1e0a4-75a8-4af8-abd1-93b8d0e956c8)
+
+## Process Hide
+![0981e988ecba705e40e30f96305b9b03](https://github.com/user-attachments/assets/9e8a223d-240f-47e5-ab73-0bae5f05de04)
+
+
 ## Medthod
 the kernel function MiReadWriteVirtualMemory call ObReferenceObjectByHandleWithTag to check the privilege.
 so hooking ObReferenceObjectByHandleWithTag can let Cheat Engine acess any process despite proctection.
@@ -78,16 +94,6 @@ __int64 __fastcall MiReadWriteVirtualMemory(
 ```
 code:
 https://github.com/oakboat/HyperCE/blob/5c682a4ee85b2b0d4d3228beb7585946c2081de5/hv/main.cpp#L15
-
-## CE Demo
-![image](https://github.com/user-attachments/assets/49fb1a7f-3c89-4b41-95d2-0fbde873965b)
-![image](https://github.com/user-attachments/assets/081c682f-4769-49cb-b0f1-8f8b06532b2e)
-our HyperCE
-![无标题](https://github.com/user-attachments/assets/0f39374d-38e9-4907-8757-7a4bd23c0d5c)
-![无标题1](https://github.com/user-attachments/assets/82b1e0a4-75a8-4af8-abd1-93b8d0e956c8)
-
-## Process Hide
-![e75d02c0210bc3f9e8dfa967367ac238](https://github.com/user-attachments/assets/0e1ebba3-a8ad-4d79-b427-d7ebba3c14d0)
 
 
 ## Demo
