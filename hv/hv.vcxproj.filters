@@ -155,7 +155,10 @@
     <MASM Include="arch.asm">
       <Filter>Source Files</Filter>
     </MASM>
-    <MASM Include="ObReferenceObjectByHandleWithTagHookTrampoline.asm">
+    <MASM Include="ObpReferenceObjectByHandleWithTagHookTrampoline.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
+    <MASM Include="NtQuerySystemInformationHookTrampoline.asm">
       <Filter>Source Files</Filter>
     </MASM>
   </ItemGroup>

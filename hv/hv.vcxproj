@@ -175,6 +175,7 @@
     <MASM Include="arch.asm" />
     <MASM Include="exception-routines.asm" />
     <MASM Include="interrupt-handlers.asm" />
+    <MASM Include="NtQuerySystemInformationHookTrampoline.asm" />
     <MASM Include="ObpReferenceObjectByHandleWithTagHookTrampoline.asm" />
     <MASM Include="vm-exit.asm" />
     <MASM Include="vm-launch.asm" />
