@@ -3,6 +3,7 @@
 #include "page-tables.h"
 #include "hypercalls.h"
 #include "logger.h"
+#include "ShadowHook/ShadowHook.h"
 #include "vmx.h"
 
 #include <ntddk.h>

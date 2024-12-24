@@ -73,9 +73,12 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <DisableSpecificWarnings>4201;5040;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <TreatWarningAsError>false</TreatWarningAsError>
+      <AdditionalIncludeDirectories>..\capstone\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EntryPointSymbol>driver_entry</EntryPointSymbol>
+      <AdditionalLibraryDirectories>..\capstone\build\win\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>capstone_static_winkernel.lib;ntstrsafe.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Inf>
       <SpecifyArchitecture>false</SpecifyArchitecture>
@@ -106,9 +109,12 @@
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <TreatWarningAsError>false</TreatWarningAsError>
+      <AdditionalIncludeDirectories>..\capstone\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EntryPointSymbol>driver_entry</EntryPointSymbol>
+      <AdditionalLibraryDirectories>..\capstone\build\win\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>capstone_static_winkernel.lib;ntstrsafe.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Inf>
       <SpecifyArchitecture>false</SpecifyArchitecture>
@@ -146,6 +152,7 @@
     <ClInclude Include="mtrr.h" />
     <ClInclude Include="page-tables.h" />
     <ClInclude Include="segment.h" />
+    <ClInclude Include="ShadowHook\ShadowHook.h" />
     <ClInclude Include="spin-lock.h" />
     <ClInclude Include="timing.h" />
     <ClInclude Include="trap-frame.h" />
@@ -167,6 +174,7 @@
     <ClCompile Include="mtrr.cpp" />
     <ClCompile Include="page-tables.cpp" />
     <ClCompile Include="segment.cpp" />
+    <ClCompile Include="ShadowHook\ShadowHook.cpp" />
     <ClCompile Include="timing.cpp" />
     <ClCompile Include="vcpu.cpp" />
     <ClCompile Include="vmcs.cpp" />
@@ -175,8 +183,6 @@
     <MASM Include="arch.asm" />
     <MASM Include="exception-routines.asm" />
     <MASM Include="interrupt-handlers.asm" />
-    <MASM Include="NtQuerySystemInformationHookTrampoline.asm" />
-    <MASM Include="ObpReferenceObjectByHandleWithTagHookTrampoline.asm" />
     <MASM Include="vm-exit.asm" />
     <MASM Include="vm-launch.asm" />
     <MASM Include="vmx.asm" />

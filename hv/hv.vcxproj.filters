@@ -85,6 +85,9 @@
     <ClInclude Include="spin-lock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ShadowHook\ShadowHook.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="exit-handlers.cpp">
@@ -135,6 +138,9 @@
     <ClCompile Include="logger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ShadowHook\ShadowHook.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="interrupt-handlers.asm">
@@ -153,12 +159,6 @@
       <Filter>Source Files</Filter>
     </MASM>
     <MASM Include="arch.asm">
-      <Filter>Source Files</Filter>
-    </MASM>
-    <MASM Include="ObpReferenceObjectByHandleWithTagHookTrampoline.asm">
-      <Filter>Source Files</Filter>
-    </MASM>
-    <MASM Include="NtQuerySystemInformationHookTrampoline.asm">
       <Filter>Source Files</Filter>
     </MASM>
   </ItemGroup>
