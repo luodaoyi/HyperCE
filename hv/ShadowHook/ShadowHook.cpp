@@ -123,21 +123,26 @@ bool InstallEptHook(void* hook_add, void* self_func_add, void** old_func_add)
 	memcpy(exec_page, reinterpret_cast<void*>(reinterpret_cast<uint64_t>(hook_add) & ~0xFFFull), 0x1000);
 
 	SIZE_T patch_bytes_size = 0;
+	int get_patch_bytes_size_count = 0;
 	while (true)
 	{
-		static int count = 0;
-		patch_bytes_size += GetInstructionSize(exec_page + ((uint64_t)hook_add & 0xFFF) + patch_bytes_size);
-		count++;
+		// Sometimes the exec_page data is not refreshed, so the original page is used for parsing
+		patch_bytes_size += GetInstructionSize((uint8_t*)hook_add + patch_bytes_size);
+		get_patch_bytes_size_count++;
 
 		if (patch_bytes_size > sizeof(new_bytes))
 			break;
-		if (count > sizeof(new_bytes))
+		if (get_patch_bytes_size_count > sizeof(new_bytes))
+		{
+			DbgPrint("[hv] patch bytes size too large, count = %d, path_bytes_size = %d\n", get_patch_bytes_size_count, patch_bytes_size);
 			return false;
+		}
 	}
+	//DbgPrint("[hv] get patch bytes size count = %d, path_bytes_size = %d\n", get_patch_bytes_size_count, patch_bytes_size);
 
 	const auto jmp_to_original = MakeTrampolineCode((void*)((uint64_t)hook_add + patch_bytes_size));
 
-	auto const original_function_page = (uint8_t*)ExAllocatePoolWithTag(NonPagedPoolExecute, patch_bytes_size + sizeof(jmp_to_original) + 1, EPT_ORIGINAL_CALL_PAGE_TAG);
+	auto const original_function_page = (uint8_t*)ExAllocatePoolWithTag(NonPagedPoolExecute, patch_bytes_size + sizeof(jmp_to_original), EPT_ORIGINAL_CALL_PAGE_TAG);
 	if (!original_function_page)
 	{
 		DbgPrint("[hv] allocate original function page error\n");
@@ -145,7 +150,7 @@ bool InstallEptHook(void* hook_add, void* self_func_add, void** old_func_add)
 	}
 	RtlZeroMemory((void*)original_function_page, patch_bytes_size + sizeof(jmp_to_original));
 
-	memcpy(original_function_page, exec_page + ((uint64_t)hook_add & 0xFFF), patch_bytes_size);
+	memcpy(original_function_page, hook_add, patch_bytes_size);
 	memcpy(original_function_page + patch_bytes_size, &jmp_to_original, sizeof(jmp_to_original));
 
 	*old_func_add = original_function_page;
@@ -163,10 +168,6 @@ bool InstallEptHook(void* hook_add, void* self_func_add, void** old_func_add)
 		input.args[0] = patch_phy;
 		auto exec_page_phy = MmGetPhysicalAddress(exec_page).QuadPart >> 12;
 		input.args[1] = exec_page_phy;
-
-		input.args[2] = (uint64_t)hook_add;
-		input.args[3] = (uint64_t)(self_func_add);
-		input.args[4] = (uint64_t)(original_function_page);
 		hv::vmx_vmcall(input);
 
 		KeRevertToUserAffinityThreadEx(orig_affinity);
@@ -175,7 +176,7 @@ bool InstallEptHook(void* hook_add, void* self_func_add, void** old_func_add)
 	return true;
 }
 
-void UnInstallEptHook(void* hook_add)
+void UnInstallEptHook(void* hook_add, void* old_func_add)
 {
 	for (size_t i = 0; i < KeQueryActiveProcessorCount(nullptr); ++i)
 	{
@@ -190,4 +191,6 @@ void UnInstallEptHook(void* hook_add)
 
 		KeRevertToUserAffinityThreadEx(orig_affinity);
 	}
+
+	ExFreePoolWithTag(old_func_add, EPT_ORIGINAL_CALL_PAGE_TAG);
 }

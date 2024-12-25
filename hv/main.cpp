@@ -132,12 +132,12 @@ static uint64_t ping() {
 }
 
 void driver_unload(PDRIVER_OBJECT) {
-	UnInstallEptHook(ObReferenceObjectByHandleWithTag);
+	UnInstallEptHook(FindObpReferenceObjectByHandleWithTag(), old_ObpReferenceObjectByHandleWithTag);
 
 	UNICODE_STRING routineName;
 	RtlInitUnicodeString(&routineName, L"NtQuerySystemInformation");
 	const auto g_NtQuerySystemInformation = (uint8_t*)MmGetSystemRoutineAddress(&routineName);
-	UnInstallEptHook(g_NtQuerySystemInformation);
+	UnInstallEptHook(g_NtQuerySystemInformation, old_NtQuerySystemInformation);
 
 	hv::stop();
 
