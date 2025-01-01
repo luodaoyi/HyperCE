@@ -63,6 +63,47 @@ fnNtQuerySystemInformation old_NtQuerySystemInformation = nullptr;
 
 extern "C" char* PsGetProcessImageFileName(PEPROCESS Process);
 
+PCWCH protected_process_list[] = {
+	L"cheatengine", L"HyperCE", L"x64dbg", L"x32dbg", L"ida", L"windbg"};
+
+bool StringArrayContainsW(PCWCH str, PCWCH* arr, SIZE_T len)
+{
+	if (str == nullptr || arr == nullptr || len == 0)
+		return false;
+
+	for (SIZE_T i = 0; i < len; i++) {
+		if (wcsstr(str, arr[i]) != nullptr)
+			return true;
+	}
+	return false;
+}
+
+bool IsProtectedProcessW(PCWCH process)
+{
+	if (process == nullptr)
+		return false;
+
+	return StringArrayContainsW(
+		process, protected_process_list, sizeof(protected_process_list) / sizeof(PCWCH));
+}
+
+bool IsProtectedProcessA(PCSZ process)
+{
+	if (process == nullptr)
+		return false;
+
+	ANSI_STRING process_ansi{0};
+	UNICODE_STRING process_unicode{0};
+	RtlInitAnsiString(&process_ansi, process);
+	NTSTATUS status = RtlAnsiStringToUnicodeString(&process_unicode, &process_ansi, TRUE);
+	if (!NT_SUCCESS(status))
+		return false;
+
+	bool result = IsProtectedProcessW(process_unicode.Buffer);
+	RtlFreeUnicodeString(&process_unicode);
+	return result;
+}
+
 uint8_t* FindObpReferenceObjectByHandleWithTag()
 {
 	auto const pObReferenceObjectByHandleWithTag =
@@ -82,17 +123,11 @@ NTSTATUS ObpReferenceObjectByHandleWithTagHook(HANDLE Handle, ACCESS_MASK Desire
 	POBJECT_TYPE ObjectType, KPROCESSOR_MODE AccessMode, ULONG Tag, PVOID* Object,
 	POBJECT_HANDLE_INFORMATION HandleInformation, __int64 a0)
 {
-	char* process_name = PsGetProcessImageFileName(PsGetCurrentProcess());
-	// DbgPrintEx(0, 0, "[hv] process_name %s\n", process_name);
-	if (strstr(process_name, "cheatengine") || strstr(process_name, "HyperCE")) {
-		// DbgPrintEx(0, 0, "process_name %s\n", process_name);
-		// return ObReferenceObjectByHandleWithTagHookTrampoline(
-		//		Handle, 0, ObjectType, KernelMode, Tag, Object, HandleInformation);
+	char* curr_process_name = PsGetProcessImageFileName(PsGetCurrentProcess());
+	if (IsProtectedProcessA(curr_process_name))
 		return old_ObReferenceObjectByHandleWithTag(
 			Handle, 0, ObjectType, KernelMode, Tag, Object, HandleInformation, a0);
-	}
-	// return ObReferenceObjectByHandleWithTagHookTrampoline(
-	//		Handle, DesiredAccess, ObjectType, AccessMode, Tag, Object, HandleInformation);
+
 	return old_ObReferenceObjectByHandleWithTag(
 		Handle, DesiredAccess, ObjectType, AccessMode, Tag, Object, HandleInformation, a0);
 }
@@ -111,7 +146,7 @@ NTSTATUS NtQuerySystemInformationHook(SYSTEM_INFORMATION_CLASS SystemInformation
 
 		while (prev->NextEntryOffset != NULL) {
 			auto buffer = curr->ImageName.Buffer;
-			if (buffer && (wcsstr(buffer, L"cheatengine") || wcsstr(buffer, L"HyperCE"))) {
+			if (buffer && IsProtectedProcessW(buffer)) {
 				if (curr->NextEntryOffset == 0)
 					prev->NextEntryOffset = 0;
 				else
