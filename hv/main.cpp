@@ -51,9 +51,9 @@ typedef enum _SYSTEM_INFORMATION_CLASS
 	SystemProcessInformation, // q: SYSTEM_PROCESS_INFORMATION
 } SYSTEM_INFORMATION_CLASS;
 
-using fnObpReferenceObjectByHandleWithTag = NTSTATUS(__stdcall*)(HANDLE Handle, ACCESS_MASK DesiredAccess, POBJECT_TYPE ObjectType, KPROCESSOR_MODE AccessMode,
+using fnObReferenceObjectByHandleWithTag = NTSTATUS(__stdcall*)(HANDLE Handle, ACCESS_MASK DesiredAccess, POBJECT_TYPE ObjectType, KPROCESSOR_MODE AccessMode,
 	ULONG Tag, PVOID* Object, POBJECT_HANDLE_INFORMATION HandleInformation, __int64 a0);
-fnObpReferenceObjectByHandleWithTag old_ObpReferenceObjectByHandleWithTag = nullptr;
+fnObReferenceObjectByHandleWithTag old_ObReferenceObjectByHandleWithTag = nullptr;
 
 using fnNtQuerySystemInformation = NTSTATUS(__stdcall*)(SYSTEM_INFORMATION_CLASS SystemInformationClass, PVOID SystemInformation, ULONG SystemInformationLength, PULONG ReturnLength);
 fnNtQuerySystemInformation old_NtQuerySystemInformation = nullptr;
@@ -77,7 +77,7 @@ uint8_t* FindObpReferenceObjectByHandleWithTag() {
 }
 
 NTSTATUS ObpReferenceObjectByHandleWithTagHook(HANDLE Handle, ACCESS_MASK DesiredAccess, POBJECT_TYPE ObjectType, KPROCESSOR_MODE AccessMode,
-    ULONG Tag, PVOID* Object, POBJECT_HANDLE_INFORMATION HandleInformation, __int64 a0)
+	ULONG Tag, PVOID* Object, POBJECT_HANDLE_INFORMATION HandleInformation, __int64 a0)
 {
 	char* process_name = PsGetProcessImageFileName(PsGetCurrentProcess());
 	//DbgPrintEx(0, 0, "[hv] process_name %s\n", process_name);
@@ -85,15 +85,15 @@ NTSTATUS ObpReferenceObjectByHandleWithTagHook(HANDLE Handle, ACCESS_MASK Desire
 	{
 		//DbgPrintEx(0, 0, "process_name %s\n", process_name);
 		//return ObReferenceObjectByHandleWithTagHookTrampoline(Handle, 0, ObjectType, KernelMode, Tag, Object, HandleInformation);
-		return old_ObpReferenceObjectByHandleWithTag(Handle, 0, ObjectType, KernelMode, Tag, Object, HandleInformation, a0);
+		return old_ObReferenceObjectByHandleWithTag(Handle, 0, ObjectType, KernelMode, Tag, Object, HandleInformation, a0);
 	}
 	//return ObReferenceObjectByHandleWithTagHookTrampoline(Handle, DesiredAccess, ObjectType, AccessMode, Tag, Object, HandleInformation);
-	return old_ObpReferenceObjectByHandleWithTag(Handle, DesiredAccess, ObjectType, AccessMode, Tag, Object, HandleInformation, a0);
+	return old_ObReferenceObjectByHandleWithTag(Handle, DesiredAccess, ObjectType, AccessMode, Tag, Object, HandleInformation, a0);
 }
 
 NTSTATUS NtQuerySystemInformationHook(SYSTEM_INFORMATION_CLASS SystemInformationClass, PVOID SystemInformation, ULONG SystemInformationLength, PULONG ReturnLength)
 {
-	//DbgPrint("[hv] NtQuerySystemInformation hook called.\n");
+	DbgPrint("[hv] NtQuerySystemInformation hook called.\n");
 	NTSTATUS stat = old_NtQuerySystemInformation(
 		SystemInformationClass,
 		SystemInformation,
@@ -132,7 +132,7 @@ static uint64_t ping() {
 }
 
 void driver_unload(PDRIVER_OBJECT) {
-	UnInstallEptHook(FindObpReferenceObjectByHandleWithTag(), old_ObpReferenceObjectByHandleWithTag);
+	UnInstallEptHook(ObReferenceObjectByHandleWithTag, old_ObReferenceObjectByHandleWithTag);
 
 	UNICODE_STRING routineName;
 	RtlInitUnicodeString(&routineName, L"NtQuerySystemInformation");
@@ -161,14 +161,14 @@ NTSTATUS driver_entry(PDRIVER_OBJECT const driver, PUNICODE_STRING) {
 	else
 		DbgPrint("[client] Failed to ping hypervisor!\n");
 
-	auto result = InstallEptHook(FindObpReferenceObjectByHandleWithTag(), ObpReferenceObjectByHandleWithTagHook, (void**)&old_ObpReferenceObjectByHandleWithTag);
-	DbgPrint("[hv] ObReferenceObjectByHandleWithTag hook installed: %s.\n", result ? "success\n" : "failure\n");
+	auto result = InstallEptHook(FindObpReferenceObjectByHandleWithTag(), ObpReferenceObjectByHandleWithTagHook, (void**)&old_ObReferenceObjectByHandleWithTag);
+	DbgPrint("[hv] ObReferenceObjectByHandleWithTag hook installed: %s.\n", result ? "success" : "failure");
 
 	UNICODE_STRING routineName;
 	RtlInitUnicodeString(&routineName, L"NtQuerySystemInformation");
 	const auto g_NtQuerySystemInformation = (uint8_t*)MmGetSystemRoutineAddress(&routineName);
 	result = InstallEptHook(g_NtQuerySystemInformation, NtQuerySystemInformationHook, (void**)&old_NtQuerySystemInformation);
-	DbgPrint("[hv] NtQuerySystemInformation hook installed: %s.\n", result ? "success\n" : "failure\n");
+	DbgPrint("[hv] NtQuerySystemInformation hook installed: %s.\n", result ? "success" : "failure");
 
 	return STATUS_SUCCESS;
 }

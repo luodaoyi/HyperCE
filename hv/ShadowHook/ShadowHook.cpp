@@ -150,7 +150,7 @@ bool InstallEptHook(void* hook_add, void* self_func_add, void** old_func_add)
 	}
 	RtlZeroMemory((void*)original_function_page, patch_bytes_size + sizeof(jmp_to_original));
 
-	memcpy(original_function_page, hook_add, patch_bytes_size);
+	memcpy(original_function_page, exec_page + ((uint64_t)hook_add & 0xFFF), patch_bytes_size);
 	memcpy(original_function_page + patch_bytes_size, &jmp_to_original, sizeof(jmp_to_original));
 
 	*old_func_add = original_function_page;
