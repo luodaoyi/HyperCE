@@ -78,14 +78,7 @@ static TrampolineCode MakeTrampolineCode(void* jmp_back_address)
 	// 0000000000000000 dq 0
 	return {
 		0x90,
-		{
-			0xff,
-			0x25,
-			0x00,
-			0x00,
-			0x00,
-			0x00,
-		},
+		{ 0xff, 0x25, 0x00, 0x00, 0x00, 0x00, },
 		jmp_back_address,
 	};
 #else
@@ -109,18 +102,8 @@ bool InstallEptHook(void* hook_add, void* self_func_add, void** old_func_add)
 	// mov rax, 0x7856341278563412
 	// jmp rax
 	uint8_t new_bytes[12] = {
-		0x48,
-		0xB8,
-		0x78,
-		0x56,
-		0x34,
-		0x12,
-		0x78,
-		0x56,
-		0x34,
-		0x12,
-		0xFF,
-		0xE0,
+		0x48, 0xB8, 0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12,
+		0xFF, 0xE0,
 	};
 	*reinterpret_cast<void**>(new_bytes + 2) = (void*)self_func_add;
 
@@ -137,17 +120,14 @@ bool InstallEptHook(void* hook_add, void* self_func_add, void** old_func_add)
 	SIZE_T patch_bytes_size = 0;
 	int get_patch_bytes_size_count = 0;
 	while (true) {
-		// Sometimes the exec_page data is not refreshed, so the original page
-		// is used for parsing
+		// Sometimes the exec_page data is not refreshed, so the original page is used for parsing
 		patch_bytes_size += GetInstructionSize((uint8_t*)hook_add + patch_bytes_size);
 		get_patch_bytes_size_count++;
 
 		if (patch_bytes_size > sizeof(new_bytes))
 			break;
 		if (get_patch_bytes_size_count > sizeof(new_bytes)) {
-			DbgPrint(
-				"[hv] patch bytes size too large, count = %d, path_bytes_size "
-				"= %zd\n",
+			DbgPrint("[hv] patch bytes size too large, count = %d, path_bytes_size = %zd\n",
 				get_patch_bytes_size_count, patch_bytes_size);
 			return false;
 		}
@@ -165,7 +145,7 @@ bool InstallEptHook(void* hook_add, void* self_func_add, void** old_func_add)
 	}
 	RtlZeroMemory((void*)original_function_page, patch_bytes_size + sizeof(jmp_to_original));
 
-	memcpy(original_function_page, exec_page + ((uint64_t)hook_add & 0xFFF), patch_bytes_size);
+	memcpy(original_function_page, hook_add, patch_bytes_size);
 	memcpy(original_function_page + patch_bytes_size, &jmp_to_original, sizeof(jmp_to_original));
 
 	*old_func_add = original_function_page;

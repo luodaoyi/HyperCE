@@ -54,7 +54,7 @@ typedef enum _SYSTEM_INFORMATION_CLASS {
 using fnObReferenceObjectByHandleWithTag = NTSTATUS(__stdcall*)(HANDLE Handle,
 	ACCESS_MASK DesiredAccess, POBJECT_TYPE ObjectType, KPROCESSOR_MODE AccessMode, ULONG Tag,
 	PVOID* Object, POBJECT_HANDLE_INFORMATION HandleInformation, __int64 a0);
-fnObReferenceObjectByHandleWithTag old_ObReferenceObjectByHandleWithTag = nullptr;
+fnObReferenceObjectByHandleWithTag old_ObpReferenceObjectByHandleWithTag = nullptr;
 
 using fnNtQuerySystemInformation = NTSTATUS(__stdcall*)(
 	SYSTEM_INFORMATION_CLASS SystemInformationClass, PVOID SystemInformation,
@@ -125,10 +125,10 @@ NTSTATUS ObpReferenceObjectByHandleWithTagHook(HANDLE Handle, ACCESS_MASK Desire
 {
 	char* curr_process_name = PsGetProcessImageFileName(PsGetCurrentProcess());
 	if (IsProtectedProcessA(curr_process_name))
-		return old_ObReferenceObjectByHandleWithTag(
+		return old_ObpReferenceObjectByHandleWithTag(
 			Handle, 0, ObjectType, KernelMode, Tag, Object, HandleInformation, a0);
 
-	return old_ObReferenceObjectByHandleWithTag(
+	return old_ObpReferenceObjectByHandleWithTag(
 		Handle, DesiredAccess, ObjectType, AccessMode, Tag, Object, HandleInformation, a0);
 }
 
@@ -171,7 +171,7 @@ static uint64_t ping()
 
 void driver_unload(PDRIVER_OBJECT)
 {
-	UnInstallEptHook(ObReferenceObjectByHandleWithTag, old_ObReferenceObjectByHandleWithTag);
+	UnInstallEptHook(FindObpReferenceObjectByHandleWithTag(), old_ObpReferenceObjectByHandleWithTag);
 
 	UNICODE_STRING routineName;
 	RtlInitUnicodeString(&routineName, L"NtQuerySystemInformation");
@@ -202,16 +202,16 @@ NTSTATUS driver_entry(PDRIVER_OBJECT const driver, PUNICODE_STRING)
 		DbgPrint("[client] Failed to ping hypervisor!\n");
 
 	auto result = InstallEptHook(FindObpReferenceObjectByHandleWithTag(),
-		ObpReferenceObjectByHandleWithTagHook, (void**)&old_ObReferenceObjectByHandleWithTag);
+		ObpReferenceObjectByHandleWithTagHook, (void**)&old_ObpReferenceObjectByHandleWithTag);
 	DbgPrint("[hv] ObReferenceObjectByHandleWithTag hook installed: %s.\n",
-		result ? "success" : "failure");
+		result ? "success\n" : "failure\n");
 
 	UNICODE_STRING routineName;
 	RtlInitUnicodeString(&routineName, L"NtQuerySystemInformation");
 	const auto g_NtQuerySystemInformation = (uint8_t*)MmGetSystemRoutineAddress(&routineName);
 	result = InstallEptHook(g_NtQuerySystemInformation, NtQuerySystemInformationHook,
 		(void**)&old_NtQuerySystemInformation);
-	DbgPrint("[hv] NtQuerySystemInformation hook installed: %s.\n", result ? "success" : "failure");
+	DbgPrint("[hv] NtQuerySystemInformation hook installed: %s.\n", result ? "success\n" : "failure\n");
 
 	return STATUS_SUCCESS;
 }
