@@ -64,7 +64,17 @@ fnNtQuerySystemInformation old_NtQuerySystemInformation = nullptr;
 extern "C" char* PsGetProcessImageFileName(PEPROCESS Process);
 
 PCWCH protected_process_list[] = {
-	L"cheatengine", L"HyperCE", L"x64dbg", L"x32dbg", L"ida", L"windbg"};
+	L"cheatengine", 
+	L"HyperCE",
+	L"x64dbg",
+	L"x32dbg",
+	L"ida",
+	L"windbg",
+	L"SeaGod",
+	L"WowGod",
+	L"YmirGod",
+	L"L2MGod",
+};
 
 bool StringArrayContainsW(PCWCH str, PCWCH* arr, SIZE_T len)
 {
@@ -201,16 +211,14 @@ NTSTATUS driver_entry(PDRIVER_OBJECT const driver, PUNICODE_STRING)
 	else
 		DbgPrint("[client] Failed to ping hypervisor!\n");
 
-	auto result = InstallEptHook(FindObpReferenceObjectByHandleWithTag(),
-		ObpReferenceObjectByHandleWithTagHook, (void**)&old_ObpReferenceObjectByHandleWithTag);
+	auto result = InstallEptHook(FindObpReferenceObjectByHandleWithTag(), ObpReferenceObjectByHandleWithTagHook, (void**)&old_ObpReferenceObjectByHandleWithTag);
 	DbgPrint("[hv] ObReferenceObjectByHandleWithTag hook installed: %s.\n",
 		result ? "success\n" : "failure\n");
 
 	UNICODE_STRING routineName;
 	RtlInitUnicodeString(&routineName, L"NtQuerySystemInformation");
 	const auto g_NtQuerySystemInformation = (uint8_t*)MmGetSystemRoutineAddress(&routineName);
-	result = InstallEptHook(g_NtQuerySystemInformation, NtQuerySystemInformationHook,
-		(void**)&old_NtQuerySystemInformation);
+	result = InstallEptHook(g_NtQuerySystemInformation, NtQuerySystemInformationHook, (void**)&old_NtQuerySystemInformation);
 	DbgPrint("[hv] NtQuerySystemInformation hook installed: %s.\n", result ? "success\n" : "failure\n");
 
 	return STATUS_SUCCESS;

@@ -85,6 +85,9 @@ struct vcpu_ept_data {
   // EPT hooks
   vcpu_ept_hooks hooks;
 
+  // Hook“≥¡–±Ì
+  LIST_ENTRY hooked_page_list;
+
   // monitored memory ranges
   vcpu_ept_mmr_entry mmr[ept_mmr_count];
 
